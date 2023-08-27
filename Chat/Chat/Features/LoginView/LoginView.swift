@@ -6,31 +6,18 @@
 //
 
 import SwiftUI
-import Firebase
-import FirebaseStorage
-
-class FirebaseManager: NSObject{
-    let auth: Auth
-    let storage: Storage
-    let firestore: Firestore
-    
-    static let shared = FirebaseManager()
-    
-    override init() {
-        FirebaseApp.configure()
-        self.auth = Auth.auth()
-        self.storage = Storage.storage()
-        self.firestore = Firestore.firestore()
-        super.init()
-    }
-    
-}
 
 struct LoginView: View {
-    @State var isLoginMode = false
-    @State var email = ""
-    @State var password = ""
-    @State var shouldShowImagePicker = false
+    
+    let didCompleteLoginProcess: () -> ()
+    
+    @State private var isLoginMode = false
+    @State private var email = ""
+    @State private var password = ""
+    @State private var shouldShowImagePicker = false
+    
+    @State private var loginStatusMessage = ""
+    @State private var image: UIImage?
     
     var body: some View {
         NavigationView{
@@ -40,8 +27,6 @@ struct LoginView: View {
                         Text("Login").tag(true)
                         Text("Create account").tag(false)
                     }.pickerStyle(SegmentedPickerStyle())
-                    
-                    
                     if !isLoginMode{
                         Button {
                             shouldShowImagePicker.toggle()
@@ -53,7 +38,7 @@ struct LoginView: View {
                                         .scaledToFill()
                                         .frame(width: 128, height: 128)
                                         .cornerRadius(64)
-
+                                    
                                 } else {
                                     Image(systemName: "person.fill").font(.system(size: 64)).foregroundColor(.black)
                                         .padding()
@@ -90,10 +75,7 @@ struct LoginView: View {
                 ImagePicker(image: $image)
             }
     }
-    
-    @State var loginStatusMessage = ""
-    @State var image: UIImage?
-    
+
     private func handleAction(){
         if isLoginMode{
             loginUser()
@@ -111,10 +93,17 @@ struct LoginView: View {
             }
             print("Successfully logged user: \(result?.user.uid ?? "")")
             self.loginStatusMessage = "Successfully logged user: \(result?.user.uid ?? "")"
+            
+            self.didCompleteLoginProcess()
         }
     }
     
     private func createNewAccount(){
+        if self.image == nil {
+            self.loginStatusMessage = "You must select an avatar image"
+            return
+        }
+        
         FirebaseManager.shared.auth.createUser(withEmail: self.email, password: self.password) { result, err in
             if let err = err {
                 print("Failed to create:", err)
@@ -156,13 +145,14 @@ struct LoginView: View {
                         "uid": uid,
                         "profileImageUrl": imageProfileUrl.absoluteString]
         
-        FirebaseManager.shared.firestore.collection("users").addDocument(data: userData) { err in
+        FirebaseManager.shared.firestore.collection("users").document(uid).setData(userData) { err in
             if let err = err {
                 print(err)
                 self.loginStatusMessage = "\(err)"
                 return
             }
             print("Success")
+            self.didCompleteLoginProcess()
         }
     }
     
@@ -170,6 +160,8 @@ struct LoginView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        LoginView()
+        LoginView {
+            
+        }
     }
 }

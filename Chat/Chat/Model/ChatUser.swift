@@ -13,8 +13,8 @@ struct ChatUser: Identifiable {
     var email, uid, profileImageUrl: String
     
     init(data: [String: Any]) {
-        self.email = data["email"] as? String ?? ""
-        self.uid = data["uid"] as? String ?? ""
-        self.profileImageUrl = data["profileImageUrl"] as? String ?? ""
+        self.email = data[FirebaseConstants.email] as? String ?? ""
+        self.uid = data[FirebaseConstants.uid] as? String ?? ""
+        self.profileImageUrl = data[FirebaseConstants.profileImageUrl] as? String ?? ""
     }
 }

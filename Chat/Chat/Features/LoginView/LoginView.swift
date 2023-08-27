@@ -40,29 +40,35 @@ struct LoginView: View {
                                         .cornerRadius(64)
                                     
                                 } else {
-                                    Image(systemName: "person.fill").font(.system(size: 64)).foregroundColor(.black)
+                                    Image(systemName: "person.fill")
+                                        .font(.system(size: 64))
+                                        .foregroundColor(Color(.label))
                                         .padding()
                                 }
-                            }.overlay(RoundedRectangle(cornerRadius: 64).stroke(Color.black, lineWidth: 3))
+                            }.overlay(RoundedRectangle(cornerRadius: 64).stroke(Color(.label), lineWidth: 3))
                         }
                     }
                     
                     Group{
-                        TextField("Email", text: $email).keyboardType(.emailAddress)
+                        TextField("Email", text: $email)
+                            .keyboardType(.emailAddress)
                             .autocapitalization(.none)
                         SecureField("Password", text: $password)
-                    } .padding(12).background(Color.white)
+                    }
+                    .padding(12)
+                    .background(Color.white)
                     
                     Button {
                         handleAction()
                     } label: {
-                        HStack{
-                            Spacer()
-                            Text(isLoginMode ? "Log In" : "Create Account").foregroundColor(.white).padding()
-                                .font(.system(size: 16, weight: .semibold))
-                            Spacer()
-                        }.background(Color.blue)
-                    }
+                        Spacer()
+                            Text(isLoginMode ? "Log In" : "Create Account")
+                            .foregroundColor(.white)
+                            .font(.system(size: 16, weight: .semibold))
+                        Spacer()
+                    }.padding()
+                    .background(Color(.blue))
+                    .cornerRadius(8)
                     
                 }.padding()
                 
@@ -141,9 +147,9 @@ struct LoginView: View {
     
     private func storeUserInformation(imageProfileUrl: URL) {
         guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
-        let userData = ["email": self.email,
-                        "uid": uid,
-                        "profileImageUrl": imageProfileUrl.absoluteString]
+        let userData = [FirebaseConstants.email: self.email,
+                        FirebaseConstants.uid: uid,
+                        FirebaseConstants.profileImageUrl: imageProfileUrl.absoluteString]
         
         FirebaseManager.shared.firestore.collection("users").document(uid).setData(userData) { err in
             if let err = err {
